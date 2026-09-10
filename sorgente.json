@@ -1,0 +1,31 @@
+{
+  "name": "Nina",
+  "identifier": "it.nina.sorgente",
+  "subtitle": "La sorgente privata di Nina",
+  "description": "Contiene una sola app: Nina.",
+  "iconURL": "https://raw.githubusercontent.com/cavannacarlo22-beep/Nina/main/ios/Nina/Assets.xcassets/AppIcon.appiconset/icona-1024.png",
+  "apps": [
+    {
+      "name": "Nina",
+      "bundleIdentifier": "it.nina.app",
+      "developerName": "Nina",
+      "subtitle": "Le tue giornate, in ordine.",
+      "localizedDescription": "Impegni, calendario, diario, abitudini, lista dei desideri e una voce che ti ricorda di respirare.",
+      "iconURL": "https://raw.githubusercontent.com/cavannacarlo22-beep/Nina/main/ios/Nina/Assets.xcassets/AppIcon.appiconset/icona-1024.png",
+      "tintColor": "F48FB1",
+      "category": "lifestyle",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "buildVersion": "2",
+          "date": "2026-09-10T13:08:44Z",
+          "downloadURL": "https://github.com/cavannacarlo22-beep/Nina/releases/download/v1.0.0-2/Nina.ipa",
+          "size": 1982805,
+          "sha256": "7f83d0882f48cac646b95b900fd742fc574356be879ce672deb9207b9d08120e",
+          "localizedDescription": "Ultima versione.",
+          "minOSVersion": "17.0"
+        }
+      ]
+    }
+  ]
+}
