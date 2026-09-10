@@ -68,17 +68,62 @@ enum ErroreNina: LocalizedError, Sendable {
 struct ConfigurazioneAPI: Sendable {
     let baseURL: URL
 
+    /// Chiave con cui l'indirizzo scelto a mano viene ricordato.
+    ///
+    /// Sta in `UserDefaults` e non nel portachiavi di proposito: non è un
+    /// segreto, è un indirizzo pubblico. Il portachiavi è per le credenziali.
+    static let chiaveIndirizzoScelto = "nina.indirizzo-server"
+
+    /// L'indirizzo cablato nel pacchetto al momento della compilazione.
+    ///
+    /// Lo scrive `project.yml` dentro Info.plist a partire dalla variabile
+    /// `NINA_SERVER`. Così l'indirizzo del backend si cambia senza toccare una
+    /// riga di Swift: basta ricompilare con una variabile diversa.
+    static var indirizzoDelPacchetto: URL? {
+        guard let scritto = Bundle.main.object(forInfoDictionaryKey: "NinaIndirizzoServer") as? String
+        else { return nil }
+
+        let pulito = scritto.trimmingCharacters(in: .whitespacesAndNewlines)
+        // XcodeGen lascia il segnaposto quando la variabile non è impostata.
+        guard !pulito.isEmpty, !pulito.hasPrefix("$("), let indirizzo = URL(string: pulito)
+        else { return nil }
+
+        return indirizzo
+    }
+
     /// Indirizzo del backend.
     ///
-    /// In sviluppo punta al Mac su cui gira `npm run dev`; in produzione al
-    /// dominio del backend. Si cambia qui e in nessun altro posto.
+    /// Tre gradini, dal più specifico al più generale:
+    ///
+    /// 1. quello scelto a mano dalle impostazioni dell'app — è la valvola di
+    ///    sicurezza: se il server cambia casa, l'app si rimette a posto senza
+    ///    che serva ricompilarla e reinstallarla;
+    /// 2. quello scritto nel pacchetto al momento della compilazione;
+    /// 3. in sviluppo, il computer su cui gira `npm run dev`.
+    ///
+    /// Il terzo gradino esiste solo in DEBUG di proposito: un pacchetto di
+    /// distribuzione che ripiega su `localhost` non fallisce, fa una cosa
+    /// peggiore — sembra funzionare e non parla con nessuno.
     static var predefinita: ConfigurazioneAPI {
+        if let scelto = UserDefaults.standard.string(forKey: chiaveIndirizzoScelto),
+           let indirizzo = URL(string: scelto.trimmingCharacters(in: .whitespacesAndNewlines)),
+           indirizzo.scheme != nil {
+            return ConfigurazioneAPI(baseURL: indirizzo)
+        }
+
+        if let dalPacchetto = indirizzoDelPacchetto {
+            return ConfigurazioneAPI(baseURL: dalPacchetto)
+        }
+
         #if DEBUG
         // Simulatore: localhost va bene. Su iPhone vero serve l'IP del Mac
         // sulla stessa rete Wi-Fi (per esempio http://192.168.1.20:3000).
         return ConfigurazioneAPI(baseURL: URL(string: "http://localhost:3000")!)
         #else
-        return ConfigurazioneAPI(baseURL: URL(string: "https://api.nina.example")!)
+        // Non c'è un ripiego sensato: senza indirizzo l'app non ha un server.
+        // Meglio un indirizzo che non risponde — e un errore visibile — di un
+        // localhost che finge.
+        return ConfigurazioneAPI(baseURL: URL(string: "https://server-non-configurato.invalid")!)
         #endif
     }
 }

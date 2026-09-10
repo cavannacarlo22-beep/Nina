@@ -37,6 +37,16 @@ settings:
     # locali senza toccare questo file.
     CODE_SIGN_STYLE: Automatic
     MARKETING_VERSION: "1.0.0"
+
+    # Indirizzo del backend, scritto dentro il pacchetto al momento della
+    # compilazione. Vuoto qui di proposito: lo passa la catena di montaggio
+    # con `NINA_SERVER=https://... xcodebuild ...`, così l'indirizzo del
+    # server si cambia senza toccare una riga di Swift né questo file.
+    #
+    # Se resta vuoto, in DEBUG l'app parla con localhost (il simulatore) e in
+    # release fallisce in modo visibile invece di fingere. Vedi
+    # ConfigurazioneAPI in Nina/Networking/ClientAPI.swift.
+    NINA_SERVER: ""
     CURRENT_PROJECT_VERSION: "1"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 
@@ -94,6 +104,8 @@ targets:
         UIBackgroundModes:
           - fetch
         ITSAppUsesNonExemptEncryption: false
+        # Da qui l'app legge l'indirizzo del backend.
+        NinaIndirizzoServer: "$(NINA_SERVER)"
         # Schema usato dai widget per aprire la schermata giusta.
         CFBundleURLTypes:
           - CFBundleURLName: it.nina.app

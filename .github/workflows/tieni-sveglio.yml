@@ -1,0 +1,58 @@
+# FILE: .github/workflows/tieni-sveglio.yml
+#
+# Tiene il backend sveglio nelle ore in cui Nina viene usata.
+#
+# Il piano gratuito di Render spegne il servizio dopo 15 minuti senza
+# richieste, e riaccenderlo richiede circa un minuto. Nina lavora in locale e
+# quel minuto di solito non si nota — ma si noterebbe eccome al primo accesso
+# della giornata, che è esattamente il momento peggiore.
+#
+# La soluzione è una richiesta ogni quattordici minuti, e solo di giorno: di
+# notte il server può dormire, come tutti.
+#
+# Perché non è uno spreco: la richiesta va su /health, che risponde senza
+# toccare il database. È il carico più leggero che il server sappia produrre.
+
+name: Tieni sveglio il backend
+
+on:
+  schedule:
+    # Ogni 14 minuti fra le 6 e le 23 ora italiana (4-21 UTC in estate).
+    - cron: '*/14 4-21 * * *'
+  workflow_dispatch:
+
+# Se un giro è ancora in corso quando parte il successivo, quello vecchio si
+# annulla: due sveglie insieme non servono a niente.
+concurrency:
+  group: tieni-sveglio
+  cancel-in-progress: true
+
+jobs:
+  sveglia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Bussa al server
+        env:
+          # Variabile del repository (Settings → Secrets and variables →
+          # Actions → Variables), non un segreto: è un indirizzo pubblico.
+          # Finché non è impostata il lavoro non fa niente e resta verde.
+          INDIRIZZO: ${{ vars.NINA_HEALTH_URL }}
+        run: |
+          if [ -z "$INDIRIZZO" ]; then
+            echo "NINA_HEALTH_URL non è impostata: niente da svegliare."
+            exit 0
+          fi
+
+          # --max-time generoso di proposito: se il server stava dormendo, la
+          # prima richiesta è proprio quella che aspetta il risveglio.
+          CODICE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "$INDIRIZZO")
+          echo "Risposta: $CODICE"
+
+          # Un errore qui non è un guasto del codice, è il server che dorme
+          # più del previsto o Render che ha un momento storto. Non vale la
+          # pena tingere di rosso il repository per questo.
+          if [ "$CODICE" != "200" ]; then
+            echo "::warning::Il backend ha risposto $CODICE invece di 200."
+          fi

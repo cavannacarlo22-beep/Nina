@@ -1,0 +1,83 @@
+# FILE: render.yaml
+#
+# Dove vive il backend di Nina.
+#
+# Questo file descrive il server per intero: quando lo si collega a Render,
+# la piattaforma legge da qui cosa costruire, come avviarlo e quali variabili
+# servono. Non c'è niente da configurare a mano tranne una cosa sola — la
+# stringa del database — e il motivo è scritto sotto.
+#
+# Perché Render e non altro: il piano gratuito non chiede una carta di
+# credito, tiene un processo acceso davvero (quindi la sincronizzazione in
+# tempo reale continua a funzionare) ed esegue i lavori di manutenzione. Le
+# alternative serverless costano zero uguale ma spezzano tutte e due le cose.
+#
+# Il piano gratuito addormenta il servizio dopo 15 minuti di silenzio e ci
+# mette circa un minuto a risvegliarsi. Nina però lavora prima di tutto in
+# locale: i dati stanno sul telefono e il server serve solo a sincronizzarli,
+# quindi il risveglio avviene in sottofondo e non si vede. Per non farlo
+# pesare nemmeno al primo accesso c'è .github/workflows/tieni-sveglio.yml.
+
+services:
+  - type: web
+    name: nina-backend
+    runtime: node
+    plan: free
+
+    # Francoforte: è il data center più vicino all'Italia fra quelli gratuiti.
+    region: frankfurt
+
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+
+    # Le migrazioni girano prima dell'avvio, a ogni rilascio.
+    #
+    # Sono idempotenti — ognuna viene applicata una volta sola e il registro
+    # sta nel database — quindi rieseguirle non fa danno. Serve a non doversi
+    # ricordare di applicarle a mano quando cambia lo schema: se falliscono,
+    # il server non parte, ed è il comportamento giusto. Meglio un server
+    # spento di un server che risponde con uno schema sbagliato.
+    startCommand: npm run migrate && npm run start
+
+    healthCheckPath: /health
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # L'unica cosa da incollare a mano.
+      #
+      # `sync: false` significa: Render la chiede al momento della creazione e
+      # non la scrive mai in questo file. È la password del database, e questo
+      # file sta su GitHub — non ci deve finire dentro per nessun motivo.
+      - key: DATABASE_URL
+        sync: false
+
+      # I due segreti che firmano le sessioni.
+      #
+      # `generateValue` li fa creare a caso da Render, diversi fra loro, e non
+      # li mostra a nessuno. Nessun essere umano li vede né li digita: è più
+      # sicuro di qualunque cosa si possa scegliere a mano, e toglie di mezzo
+      # la tentazione di riusare due volte lo stesso valore.
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+      # La porta d'ingresso, chiusa.
+      #
+      # Con "no" nessuno può creare un account, nemmeno conoscendo
+      # l'indirizzo del server. Si mette "si" per il tempo di registrarsi e si
+      # rimette subito "no". Vedi docs/SERVER_ONLINE.md.
+      - key: REGISTRAZIONI_APERTE
+        value: "no"
+
+      # Nessuna origine browser autorizzata: Nina è un'app, non un sito.
+      - key: CORS_ORIGINS
+        value: ""
+
+      - key: AI_PROVIDER
+        value: none
+
+      - key: LOG_LEVEL
+        value: info

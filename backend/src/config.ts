@@ -43,6 +43,14 @@ function integer(name: string, fallback: number): number {
   return parsed;
 }
 
+function booleano(name: string, fallback: boolean): boolean {
+  const raw = optional(name).toLowerCase();
+  if (raw === '') return fallback;
+  if (['1', 'si', 'sì', 'true', 'yes', 'on'].includes(raw)) return true;
+  if (['0', 'no', 'false', 'off'].includes(raw)) return false;
+  throw new ConfigError(`${name} deve essere si oppure no, trovato "${raw}"`);
+}
+
 const nodeEnv = (optional('NODE_ENV', 'development') as NodeEnv);
 if (!['development', 'test', 'production'].includes(nodeEnv)) {
   throw new ConfigError(`NODE_ENV deve essere development, test o production`);
@@ -84,11 +92,33 @@ export const config = {
   server: {
     port: integer('PORT', 3000),
     host: optional('HOST', '0.0.0.0'),
-    publicBaseUrl: optional('PUBLIC_BASE_URL', 'http://localhost:3000').replace(/\/+$/, ''),
+    // Indirizzo pubblico, usato nei link di verifica email e reset password.
+    //
+    // Render espone da sé l'indirizzo del servizio in RENDER_EXTERNAL_URL: lo
+    // usiamo come ripiego così non c'è una variabile in più da compilare a
+    // mano, e soprattutto non c'è modo di sbagliarla.
+    publicBaseUrl: optional(
+      'PUBLIC_BASE_URL',
+      optional('RENDER_EXTERNAL_URL', 'http://localhost:3000'),
+    ).replace(/\/+$/, ''),
     corsOrigins: optional('CORS_ORIGINS')
       .split(',')
       .map((o) => o.trim())
       .filter(Boolean),
+  },
+
+  sicurezza: {
+    // Chi può creare un account.
+    //
+    // Un backend raggiungibile da internet con la registrazione aperta è un
+    // backend di chiunque: basta trovare l'indirizzo. Nina ha un numero di
+    // utenti noto e piccolo, quindi il comportamento giusto è l'opposto di
+    // quello di un servizio pubblico — porta chiusa, e la si apre per il
+    // tempo che serve a far entrare qualcuno.
+    //
+    // Fuori produzione resta aperta, altrimenti i test non potrebbero creare
+    // gli account su cui lavorano.
+    registrazioniAperte: booleano('REGISTRAZIONI_APERTE', nodeEnv !== 'production'),
   },
 
   logging: {

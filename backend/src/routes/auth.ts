@@ -4,6 +4,7 @@ import { Type } from "@sinclair/typebox";
 import type { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { config } from "../config.js";
 import * as auth from "../services/authService.js";
+import { AppError } from "../utils/errors.js";
 import {
   currentUserId,
   requireAuth,
@@ -92,6 +93,20 @@ export const authRoutes: FastifyPluginAsyncTypebox = async (app) => {
       },
     },
     async (request, reply) => {
+      // La porta d'ingresso, chiusa a chiave quando il server sta su
+      // internet. Non è un dettaglio di comodo: senza questo controllo
+      // chiunque trovi l'indirizzo può farsi un account dentro Nina.
+      //
+      // Il controllo sta qui e non nell'app: quello nell'app lo aggira
+      // chiunque sappia usare un terminale.
+      if (!config.sicurezza.registrazioniAperte) {
+        throw new AppError(
+          403,
+          'FORBIDDEN',
+          'Le registrazioni sono chiuse.',
+        );
+      }
+
       const result = await auth.register(request.body, sessionContext(request));
       return reply.status(201).send(result);
     },
