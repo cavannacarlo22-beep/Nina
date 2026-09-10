@@ -1,0 +1,51 @@
+# FILE: .gitignore
+
+# ---------------------------------------------------------------------------
+# Segreti
+# ---------------------------------------------------------------------------
+# backend/.env contiene la stringa di connessione a Neon e i segreti delle
+# sessioni: non entra nel repository per nessun motivo. Quello che si
+# condivide è .env.example, che ha solo i nomi delle variabili.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+*.certSigningRequest
+
+# ---------------------------------------------------------------------------
+# Node
+# ---------------------------------------------------------------------------
+node_modules/
+dist/
+coverage/
+*.log
+
+# ---------------------------------------------------------------------------
+# Xcode
+# ---------------------------------------------------------------------------
+# Il progetto si genera con XcodeGen da ios/project.yml: il file .xcodeproj è
+# un artefatto, ed è anche la causa numero uno dei conflitti di merge nei
+# progetti iOS.
+*.xcodeproj/
+*.xcworkspace/
+!*.xcworkspace/contents.xcworkspacedata
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+.swiftpm/
+Packages/
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# ---------------------------------------------------------------------------
+# Sistema
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db

@@ -90,7 +90,6 @@ scritti per chi non ha mai usato un database.
 ### 2. Tutto il resto, con un comando
 
 ```bash
-cd nina
 ./avvia.sh
 ```
 
