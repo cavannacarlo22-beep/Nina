@@ -1,0 +1,19 @@
+{
+  // Configurazione usata SOLO per costruire il pacchetto di produzione.
+  //
+  // Perché serve un file a parte: il tsconfig principale include anche
+  // `scripts/` e `tests/`, e con tre cartelle di partenza TypeScript mette la
+  // radice comune (la cartella corrente) dentro `dist`. Il risultato era
+  // `dist/src/server.js` mentre `npm start` cercava `dist/server.js`: la
+  // costruzione riusciva, l'avvio no.
+  //
+  // Qui la radice è `src` e basta. I file di `scripts/` non servono compilati
+  // perché girano con tsx, e i test in produzione non ci vanno.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "sourceMap": false
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules", "tests", "scripts"]
+}

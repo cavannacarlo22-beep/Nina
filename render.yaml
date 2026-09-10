@@ -28,7 +28,13 @@ services:
     region: frankfurt
 
     rootDir: backend
-    buildCommand: npm ci && npm run build
+    # `--include=dev` non è un dettaglio: più sotto c'è NODE_ENV=production, e
+    # con quella variabile `npm ci` salta le dipendenze di sviluppo. Fra
+    # quelle c'è TypeScript, cioè il compilatore che serve proprio a
+    # costruire il server. Senza il flag, la costruzione fallisce con
+    # "tsc: not found" — e il motivo è a venti righe di distanza da dove si
+    # legge l'errore.
+    buildCommand: npm ci --include=dev && npm run build
 
     # Le migrazioni girano prima dell'avvio, a ogni rilascio.
     #
@@ -37,6 +43,8 @@ services:
     # ricordare di applicarle a mano quando cambia lo schema: se falliscono,
     # il server non parte, ed è il comportamento giusto. Meglio un server
     # spento di un server che risponde con uno schema sbagliato.
+    # `migrate` gira con tsx, anche lui una dipendenza di sviluppo: resta
+    # installato grazie al --include=dev della costruzione.
     startCommand: npm run migrate && npm run start
 
     healthCheckPath: /health
