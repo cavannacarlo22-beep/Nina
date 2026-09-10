@@ -39,14 +39,17 @@ settings:
     MARKETING_VERSION: "1.0.0"
 
     # Indirizzo del backend, scritto dentro il pacchetto al momento della
-    # compilazione. Vuoto qui di proposito: lo passa la catena di montaggio
-    # con `NINA_SERVER=https://... xcodebuild ...`, così l'indirizzo del
-    # server si cambia senza toccare una riga di Swift né questo file.
+    # compilazione.
     #
-    # Se resta vuoto, in DEBUG l'app parla con localhost (il simulatore) e in
-    # release fallisce in modo visibile invece di fingere. Vedi
-    # ConfigurazioneAPI in Nina/Networking/ClientAPI.swift.
-    NINA_SERVER: ""
+    # Sta qui e non in un segreto perché non è un segreto: è un indirizzo
+    # pubblico, e tenerlo in chiaro rende la compilazione riproducibile da
+    # chiunque abbia il repository. Si può scavalcare dalla riga di comando
+    # (`NINA_SERVER=https://altro xcodebuild ...`) e, sul telefono, anche
+    # dalle impostazioni dell'app: serve a rimettere in piedi le cose se il
+    # server cambia casa, senza reinstallare niente.
+    #
+    # Vedi ConfigurazioneAPI in Nina/Networking/ClientAPI.swift.
+    NINA_SERVER: "https://nina-backend-yeip.onrender.com"
     CURRENT_PROJECT_VERSION: "1"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
 

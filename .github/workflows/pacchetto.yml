@@ -1,0 +1,221 @@
+# FILE: .github/workflows/pacchetto.yml
+#
+# Costruisce il pacchetto installabile di Nina e lo pubblica.
+#
+# A cosa serve. Nina non va sull'App Store, ma deve comunque arrivare su un
+# telefono e aggiornarsi senza che nessuno debba possedere un Mac. Questo file
+# fa entrambe le cose: un Mac di GitHub compila l'app, la impacchetta in un
+# .ipa e la pubblica come "release"; accanto ci scrive un piccolo file JSON
+# che AltStore e SideStore sanno leggere. Il telefono guarda quel file, vede
+# che c'è una versione nuova e la installa con un tocco.
+#
+# In pratica è un App Store privato che contiene una sola app.
+#
+# Il pacchetto NON è firmato, ed è voluto: la firma la mette il telefono con
+# l'Apple ID di chi installa. Un .ipa firmato da noi non servirebbe a nessuno
+# e ci obbligherebbe a tenere un certificato in un segreto del repository.
+#
+# Nota sui widget: qui l'estensione viene tolta. Gli App Group — l'unico
+# canale con cui un widget legge i dati della sua app — Apple non li concede
+# agli Apple ID gratuiti, quindi un pacchetto che li chiede verrebbe rifiutato
+# al momento della firma sul telefono. I widget torneranno quando leggeranno i
+# dati per un'altra strada; intanto l'app funziona tutta.
+
+name: Pacchetto per il telefono
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - '.github/workflows/pacchetto.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: pacchetto
+  cancel-in-progress: true
+
+jobs:
+  impacchetta:
+    name: Costruisci e pubblica
+    runs-on: macos-latest
+    timeout-minutes: 40
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installa XcodeGen
+        run: brew install xcodegen
+
+      - name: Genera il progetto
+        working-directory: ios
+        run: xcodegen generate
+
+      # Il numero di build cresce a ogni giro.
+      #
+      # Serve a SideStore per capire che c'è qualcosa di nuovo: confronta
+      # questo numero con quello installato. Se non crescesse, un
+      # aggiornamento non verrebbe mai proposto.
+      - name: Decidi i numeri di versione
+        id: versione
+        run: |
+          MARKETING=$(grep -m1 'MARKETING_VERSION:' ios/project.yml | sed 's/.*"\(.*\)".*/\1/')
+          echo "marketing=$MARKETING"        >> "$GITHUB_OUTPUT"
+          echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "tag=v$MARKETING-${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "Versione $MARKETING, build ${{ github.run_number }}"
+
+      - name: Compila per il telefono
+        working-directory: ios
+        run: |
+          set -o pipefail
+          # `generic/platform=iOS` è il telefono in generale, non un modello:
+          # il pacchetto deve andare bene su qualunque iPhone e iPad.
+          #
+          # Senza firma (CODE_SIGNING_ALLOWED=NO) e senza entitlements
+          # (CODE_SIGN_ENTITLEMENTS="") — le due cose vanno insieme: gli
+          # entitlements di Nina chiedono un App Group, e chiederlo con un
+          # Apple ID gratuito fa fallire l'installazione. L'app senza App
+          # Group funziona lo stesso: il codice che lo usa lo tratta come una
+          # cosa che può non esserci.
+          xcodebuild build \
+            -project Nina.xcodeproj \
+            -scheme Nina \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            MARKETING_VERSION="${{ steps.versione.outputs.marketing }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.versione.outputs.build }}" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            > pacchetto.log 2>&1 && ESITO=0 || ESITO=$?
+
+          grep -E "error: " pacchetto.log | sort -u | head -40 || true
+          exit $ESITO
+
+      - name: Impacchetta in .ipa
+        id: ipa
+        working-directory: ios
+        run: |
+          APP=$(find build/Build/Products/Release-iphoneos -maxdepth 1 -name 'Nina.app' | head -1)
+          if [ -z "$APP" ]; then
+            echo "::error::Nina.app non trovata: la compilazione non ha prodotto niente."
+            exit 1
+          fi
+
+          rm -rf Payload && mkdir Payload
+          cp -R "$APP" Payload/Nina.app
+
+          # Via l'estensione dei widget: senza App Group non potrebbe
+          # comunque leggere niente, e la sua presenza fa fallire la firma
+          # con un Apple ID gratuito.
+          rm -rf Payload/Nina.app/PlugIns
+
+          # E via anche gli entitlements rimasti incastrati nel pacchetto.
+          rm -f Payload/Nina.app/archived-expanded-entitlements.xcent
+
+          zip -qry Nina.ipa Payload
+          rm -rf Payload
+
+          echo "byte=$(stat -f%z Nina.ipa)" >> "$GITHUB_OUTPUT"
+          echo "sha=$(shasum -a 256 Nina.ipa | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          ls -lh Nina.ipa
+
+      - name: Pubblica la release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.versione.outputs.tag }}" \
+            ios/Nina.ipa \
+            --title "Nina ${{ steps.versione.outputs.marketing }} (${{ steps.versione.outputs.build }})" \
+            --notes "Pacchetto non firmato, da installare con SideStore o AltStore.
+
+          Commit: ${{ github.sha }}"
+
+      # Il file che il telefono controlla per sapere se c'è un aggiornamento.
+      #
+      # Vive nel repository e non fra i file della release perché deve avere
+      # un indirizzo che non cambia mai: SideStore lo memorizza una volta e lo
+      # rilegge da solo. Le release invece cambiano indirizzo a ogni versione.
+      - name: Aggiorna la sorgente privata
+        env:
+          BYTE: ${{ steps.ipa.outputs.byte }}
+          SHA: ${{ steps.ipa.outputs.sha }}
+          MARKETING: ${{ steps.versione.outputs.marketing }}
+          BUILD: ${{ steps.versione.outputs.build }}
+          TAG: ${{ steps.versione.outputs.tag }}
+        run: |
+          python3 - <<'PY'
+          import json, os, datetime, pathlib
+
+          grezzo = 'https://raw.githubusercontent.com/cavannacarlo22-beep/Nina/main'
+          rilasci = 'https://github.com/cavannacarlo22-beep/Nina/releases/download'
+
+          versione = {
+              'version': os.environ['MARKETING'],
+              'buildVersion': os.environ['BUILD'],
+              'date': datetime.datetime.now(datetime.timezone.utc)
+                        .strftime('%Y-%m-%dT%H:%M:%SZ'),
+              'downloadURL': f"{rilasci}/{os.environ['TAG']}/Nina.ipa",
+              'size': int(os.environ['BYTE']),
+              'sha256': os.environ['SHA'],
+              'localizedDescription': 'Ultima versione.',
+              'minOSVersion': '17.0',
+          }
+
+          percorso = pathlib.Path('sorgente.json')
+          if percorso.exists():
+              sorgente = json.loads(percorso.read_text())
+              precedenti = sorgente['apps'][0].get('versions', [])
+          else:
+              precedenti = []
+              sorgente = {
+                  'name': 'Nina',
+                  'identifier': 'it.nina.sorgente',
+                  'subtitle': 'La sorgente privata di Nina',
+                  'description': 'Contiene una sola app: Nina.',
+                  'iconURL': f'{grezzo}/ios/Nina/Assets.xcassets/AppIcon.appiconset/icona-1024.png',
+                  'apps': [{
+                      'name': 'Nina',
+                      'bundleIdentifier': 'it.nina.app',
+                      'developerName': 'Nina',
+                      'subtitle': 'Le tue giornate, in ordine.',
+                      'localizedDescription': (
+                          'Impegni, calendario, diario, abitudini, lista dei desideri '
+                          'e una voce che ti ricorda di respirare.'
+                      ),
+                      'iconURL': f'{grezzo}/ios/Nina/Assets.xcassets/AppIcon.appiconset/icona-1024.png',
+                      'tintColor': 'F48FB1',
+                      'category': 'lifestyle',
+                      'versions': [],
+                  }],
+              }
+
+          # La più recente per prima: è l'ordine che SideStore si aspetta.
+          # Le vecchie restano, ma non all'infinito — dieci bastano a poter
+          # tornare indietro se una versione esce storta.
+          app = sorgente['apps'][0]
+          app['versions'] = [versione] + [
+              v for v in precedenti if v.get('buildVersion') != versione['buildVersion']
+          ][:9]
+
+          percorso.write_text(json.dumps(sorgente, indent=2, ensure_ascii=False) + '\n')
+          print(f"sorgente.json: versione {versione['version']} build {versione['buildVersion']}")
+          PY
+
+          if git diff --quiet sorgente.json 2>/dev/null && [ -f sorgente.json ]; then
+            echo "Nessun cambiamento."
+            exit 0
+          fi
+
+          git config user.name "Mac di GitHub"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add sorgente.json
+          git commit -m "Sorgente: Nina ${{ steps.versione.outputs.marketing }} build ${{ steps.versione.outputs.build }}"
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
