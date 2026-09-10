@@ -208,14 +208,24 @@ jobs:
           print(f"sorgente.json: versione {versione['version']} build {versione['buildVersion']}")
           PY
 
-          if git diff --quiet sorgente.json 2>/dev/null && [ -f sorgente.json ]; then
-            echo "Nessun cambiamento."
-            exit 0
-          fi
-
           git config user.name "Mac di GitHub"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # `git add` PRIMA del confronto, e il confronto sull'area di
+          # staging.
+          #
+          # Al contrario non funziona: `git diff` non guarda i file che git
+          # ancora non conosce, quindi la primissima volta — quando
+          # sorgente.json non è mai esistito — non vedeva alcuna differenza,
+          # dichiarava "nessun cambiamento" e usciva riuscito senza aver
+          # scritto niente. Un passo verde che non ha fatto il suo lavoro è
+          # peggio di un passo rosso.
           git add sorgente.json
+
+          if git diff --cached --quiet -- sorgente.json; then
+            echo "La sorgente è già aggiornata."
+            exit 0
+          fi
           git commit -m "Sorgente: Nina ${{ steps.versione.outputs.marketing }} build ${{ steps.versione.outputs.build }}"
           git pull --rebase --autostash origin main
           git push origin HEAD:main
