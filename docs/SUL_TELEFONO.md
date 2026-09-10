@@ -36,27 +36,35 @@ collegato. Senza, il resto non funziona e l'errore che esce non lo dice.
 Cavo, telefono sbloccato. Se compare **«Autorizzare questo computer?»** →
 **Autorizza**, e digita il codice del telefono.
 
-### 3. Installa SideStore
+### 3. Installa SideStore con iLoader
 
 SideStore è un'app che vive **sul telefono**. Il PC serve solo da trampolino,
 questa volta e mai più.
 
-Due cose, dal PC, seguendo le istruzioni su **sidestore.io**:
+Lo strumento è **iLoader**, quello che la documentazione di SideStore
+raccomanda per Windows. Fa tutto lui: il file di aggancio, l'installazione,
+la firma.
 
-1. **il file di aggancio** — si crea con lo strumento `idevice_pair` (in
-   alcune guide si chiama JitterbugPair). Telefono collegato, sbloccato, sulla
-   schermata Home;
-2. **SideStore sul telefono** — la prima installazione parte dal PC.
+⚠️ **Scaricalo solo da `iloader.app` o dal repository `nab138/iloader` su
+GitHub.** Esistono diversi siti sosia con lo stesso nome. A un programma che
+sta per ricevere le credenziali Apple non si concede il beneficio del dubbio
+sulla provenienza.
 
-⚠️ Quando sposti il file `.mobiledevicepairing` dal PC al telefono, Windows
-tende a cambiargli l'estensione e SideStore poi lo rifiuta senza spiegare
-perché. **Mettilo in uno zip prima di trasferirlo.**
+Su Windows scegli la versione **MSI**.
 
-Ti chiederà **l'Apple ID e la password**. È il passaggio che mette a disagio,
-quindi vale la pena spiegarlo: quelle credenziali servono a chiedere ad Apple
-un certificato di sviluppo intestato a te — è la stessa cosa che fa Xcode su
-un Mac. Se vuoi dormire tranquilla, crea un Apple ID nuovo e usa quello solo
-per questo: funziona identico.
+Poi:
+
+1. **collega l'iPhone** col cavo e sbloccalo; se chiede «Autorizzare questo
+   computer?» → **Autorizza** e digita il codice;
+2. **apri iLoader e accedi con l'Apple ID**;
+3. **seleziona il telefono** → **Install SideStore (Stable)**.
+
+Sull'Apple ID vale la pena spendere due parole, perché è il passaggio che mette
+a disagio: quelle credenziali servono a farsi rilasciare da Apple un
+certificato di sviluppo intestato a te — è esattamente quello che fa Xcode su
+un Mac. iLoader è open source, quindi cosa ne fa è verificabile da chiunque.
+Se preferisci comunque non usare il tuo account principale, creane uno nuovo
+gratuito e usa quello solo per questo: funziona identico.
 
 Da qui in avanti il PC non serve più. È il motivo per cui SideStore è
 preferibile ad AltStore: AltStore pretende che il computer resti installato e
