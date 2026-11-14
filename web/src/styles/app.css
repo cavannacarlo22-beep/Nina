@@ -684,3 +684,5 @@ body.zen .nb-layout { grid-template-columns: 1fr; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 a.sidebar-foot:hover span { text-decoration: underline; }
+
+.lock.welcome { z-index: 60; }

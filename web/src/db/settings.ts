@@ -15,6 +15,7 @@ export interface Settings {
   weekStartsMonday: boolean;
   dashboardWidgets: string[];
   favoriteFonts: string[];
+  favoriteQuotes: string[];
   recentFonts: string[];
   editorFont: string;
   editorFontSize: number;
@@ -49,8 +50,9 @@ export const DEFAULT_SETTINGS: Settings = {
   hearts: true,
   defaultReminder: 30,
   weekStartsMonday: true,
-  dashboardWidgets: ['today', 'tasks', 'mood', 'calendar', 'events', 'quick', 'countdown', 'notes', 'selfcare', 'beauty', 'study', 'files', 'calc'],
+  dashboardWidgets: ['pensiero', 'today', 'tasks', 'mood', 'calendar', 'events', 'quick', 'countdown', 'notes', 'selfcare', 'beauty', 'study', 'files', 'calc'],
   favoriteFonts: ['Playfair Display', 'Caveat', 'Lora', 'Poppins'],
+  favoriteQuotes: [],
   recentFonts: [],
   editorFont: 'Lora',
   editorFontSize: 17,

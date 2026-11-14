@@ -11,12 +11,15 @@ import { Empty, Modal, useUI } from '../components/ui';
 export function MoodPicker({ date, compact }: { date: string; compact?: boolean }) {
   const ui = useUI();
   const mood = useLiveQuery(() => db.moods.where('date').equals(date).first(), [date]);
+  const [reply, setReply] = useState('');
   const pick = async (m: MoodKind) => {
     const same = mood?.mood === m;
     await setMood(date, same ? null : m);
-    if (!same) ui.toast(isPositive(m) ? voce.moodPositivo() : m === 'COSI_COSI' ? 'Segnato 💗' : voce.moodDifficile());
+    setReply(same ? '' : isPositive(m) ? voce.moodPositivo() : m === 'COSI_COSI' ? 'Segnato 💗 Domani magari va meglio.' : voce.moodDifficile());
   };
+  void ui;
   return (
+    <>
     <div className="mood-row" style={{ flexWrap: 'wrap' }}>
       {MOODS.map((m) => (
         <button key={m.id} className={'mood-btn' + (mood?.mood === m.id ? ' active' : '')} onClick={() => pick(m.id)} title={m.label}
@@ -25,6 +28,8 @@ export function MoodPicker({ date, compact }: { date: string; compact?: boolean 
         </button>
       ))}
     </div>
+    {reply && <p className="small" style={{ margin: '10px 0 0', color: 'var(--primary-strong)', fontWeight: 600 }}>{reply}</p>}
+    </>
   );
 }
 

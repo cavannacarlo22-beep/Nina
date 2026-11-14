@@ -1,8 +1,8 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import {
-  BookHeart, Calculator, CalendarHeart, Cloud, CloudOff, Flame, Flower2, FolderHeart, Gift, HardDrive, Heart, HeartHandshake, Home, ListChecks,
-  Menu, MoreHorizontal, RefreshCw, Settings as SettingsIcon, Sparkles, Timer, TrendingUp, Type, Wind,
+  BookHeart, Calculator, CalendarHeart, Cloud, CloudOff, Flame, Flower2, FolderHeart, Gift, Heart, HeartHandshake, Home, ListChecks,
+  LogIn, Menu, MoreHorizontal, Quote, RefreshCw, Settings as SettingsIcon, Sparkles, Timer, TrendingUp, Type, Wind,
 } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { HeartsBackdrop } from './components/Hearts';
@@ -16,6 +16,7 @@ import { takeSnapshot } from './lib/backup';
 import { todayISO } from './lib/dates';
 import { LockScreen } from './pages/LockScreen';
 import HomePage from './pages/Home';
+import { Benvenuto } from './pages/Benvenuto';
 
 const Agenda = lazy(() => import('./pages/Agenda'));
 const Calcoli = lazy(() => import('./pages/Calcoli'));
@@ -33,6 +34,7 @@ const Beauty = lazy(() => import('./pages/Beauty'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
 const Amica = lazy(() => import('./pages/Amica'));
 const Progressi = lazy(() => import('./pages/Progressi'));
+const Pensieri = lazy(() => import('./pages/Pensieri'));
 const Impostazioni = lazy(() => import('./pages/Impostazioni'));
 
 type NavItem = { to: string; label: string; icon: typeof Home; end?: boolean };
@@ -50,6 +52,7 @@ export const NAV_GROUPS: { title?: string; items: NavItem[] }[] = [
     { to: '/font', label: 'Libreria dei font', icon: Type },
   ] },
   { title: 'Per te', items: [
+    { to: '/pensieri', label: 'Pensieri', icon: Quote },
     { to: '/umore', label: 'Umore e diario', icon: Heart },
     { to: '/abitudini', label: 'Abitudini', icon: Flame },
     { to: '/benessere', label: 'Benessere', icon: Flower2 },
@@ -102,7 +105,14 @@ function SyncFooter() {
       : st.status === 'offline' ? 'Offline: salvo qui'
         : st.status === 'error' ? 'Sincronizzazione in pausa'
           : st.pending ? `${st.pending} modifiche da inviare` : 'Tutto sincronizzato';
-  const Icon = !user ? HardDrive : st.status === 'offline' || st.status === 'error' ? CloudOff : st.status === 'syncing' ? RefreshCw : Cloud;
+  if (!user) {
+    return (
+      <NavLink to="/impostazioni" className="btn btn-soft btn-sm sidebar-login" style={{ margin: '10px 4px 0' }} title="Accedi per sincronizzare">
+        <LogIn size={15} /><span className="nav-label">Accedi</span>
+      </NavLink>
+    );
+  }
+  const Icon = st.status === 'offline' || st.status === 'error' ? CloudOff : st.status === 'syncing' ? RefreshCw : Cloud;
   return (
     <NavLink to="/impostazioni" className="sidebar-foot" style={{ textDecoration: 'none' }} title={st.message || text}>
       <Icon size={14} color={st.status === 'error' ? 'var(--danger)' : 'var(--blue-strong)'} /> <span>{text}</span>
@@ -197,6 +207,10 @@ function Background() {
 
 function Themed({ children }: { children: ReactNode }) {
   const s = useSettingsLoaded();
+  const user = useSession();
+  const welcomeDone = useLiveQuery(async () => Boolean((await db.localSettings.get('welcomeDone'))?.value), []);
+  const [welcome, setWelcome] = useState<boolean | undefined>(undefined);
+  useEffect(() => { if (welcomeDone !== undefined) setWelcome(welcomeDone); }, [welcomeDone]);
   const [unlocked, setUnlocked] = useState(false);
   const [lastActive, setLastActive] = useState(Date.now());
 
@@ -235,7 +249,8 @@ function Themed({ children }: { children: ReactNode }) {
     };
   }, [s?.pinHash, s?.lockAfterMinutes, lastActive]);
 
-  if (!s) return null;
+  if (!s || welcome === undefined) return null;
+  if (!welcome && !user) return <><HeartsBackdrop /><Benvenuto onDone={() => setWelcome(true)} /></>;
   return (
     <>
       {s.hearts && <HeartsBackdrop />}
@@ -274,6 +289,7 @@ export default function App() {
               <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/amica" element={<Amica />} />
               <Route path="/progressi" element={<Progressi />} />
+              <Route path="/pensieri" element={<Pensieri />} />
               <Route path="/impostazioni" element={<Impostazioni />} />
               <Route path="*" element={<HomePage />} />
             </Routes>

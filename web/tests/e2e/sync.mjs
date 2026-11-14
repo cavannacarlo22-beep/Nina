@@ -44,6 +44,8 @@ const waitSynced = async (p) => {
 
 await step('iPad: uso senza account (offline-first)', async () => {
   current = ipad;
+  await ipad.goto(BASE);
+  await ipad.click('button:has-text("Continua senza account")');
   await ipad.goto(BASE + '#/cose');
   await ipad.fill('textarea[placeholder="Aggiungi un’attività…"]', 'Comprare il latte');
   await ipad.keyboard.press('Enter');
@@ -83,8 +85,9 @@ await step('iPad: crea l’account e carica tutto', async () => {
 
 await step('iPhone: accede e ritrova tutto', async () => {
   current = phone;
-  await phone.goto(BASE + '#/impostazioni');
-  await phone.click('button:has-text("Accedi")');
+  await phone.goto(BASE);
+  // la prima schermata, come sull'app iPhone: si accede da lì
+  await phone.click('.lock button:has-text("Accedi")');
   await phone.fill('input[type="email"]', email);
   await phone.fill('input[type="password"]', password);
   await phone.click('.modal-foot >> text=Accedi');
@@ -148,6 +151,9 @@ await step('iPhone: uscendo i dati spariscono dal dispositivo', async () => {
   await phone.click('button:has-text("Esci")');
   await phone.click('.modal-foot >> text=Esci');
   await phone.waitForSelector('button:has-text("Crea un account")');
+  await phone.reload();
+  const cont = phone.locator('button:has-text("Continua senza account")');
+  if (await cont.isVisible().catch(() => false)) await cont.click();
   await phone.goto(BASE + '#/beauty');
   await phone.waitForSelector('text=La trousse è vuota');
 });

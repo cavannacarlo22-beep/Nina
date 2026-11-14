@@ -21,18 +21,19 @@ import { FileViewer } from '../components/FileViewer';
 import { Empty, Modal, Swatches, useUI } from '../components/ui';
 import { TinyHeart } from '../components/Hearts';
 import { MoodPicker } from './Umore';
+import { PensieroCard } from './Pensieri';
 import { WaterTracker } from './Benessere';
 import { randomIdea } from './SelfCare';
 import { useTodayRoutine } from './Beauty';
 import type { FileRec } from '../db/types';
 
 const WIDGETS: Record<string, string> = {
-  today: 'Accesso rapido', tasks: 'Le cose di oggi', mood: 'Come stai', calendar: 'Calendario', events: 'Prossimi appuntamenti',
+  pensiero: 'Pensiero di oggi', today: 'Accesso rapido', tasks: 'Le cose di oggi', mood: 'Come stai', calendar: 'Calendario', events: 'Prossimi appuntamenti',
   quick: 'Da ricordare', countdown: 'Conto alla rovescia', notes: 'Ultimi appunti', selfcare: 'Un momento per te', beauty: 'Beauty',
   study: 'Studio', files: 'Documenti', calc: 'Calcolo veloce',
 };
 const SPAN: Record<string, string> = {
-  today: 'span-12', tasks: 'span-7', mood: 'span-5', calendar: 'span-4', events: 'span-8', quick: 'span-4', countdown: 'span-4',
+  pensiero: 'span-12', today: 'span-12', tasks: 'span-7', mood: 'span-5', calendar: 'span-4', events: 'span-8', quick: 'span-4', countdown: 'span-4',
   notes: 'span-4', selfcare: 'span-6', beauty: 'span-6', study: 'span-4', files: 'span-8', calc: 'span-4',
 };
 
@@ -60,13 +61,17 @@ export default function Home() {
   const [editHero, setEditHero] = useState(false);
   const greeting = s.greeting === 'auto' || !s.greeting ? saluto(s.name, now.getHours()) : `${s.greeting}${s.name ? `, ${s.name}` : ''}`;
   const quote = s.rotateQuotes ? pensieroDelGiorno(now) : { text: s.quote, author: s.quoteAuthor || null };
-  const evening = useLiveQuery(async () => {
-    if (now.getHours() < 19) return '';
-    const t = await db.tasks.where('date').equals(todayISO()).toArray();
-    return riepilogoSera(t.filter((x) => x.isCompleted).length, t.filter((x) => !x.isCompleted).length);
-  }, [now.getHours()]);
+  // la frase di Nina sotto il saluto, come nell'app iPhone
+  const ninaLine = useLiveQuery(async () => {
+    const t = (await db.tasks.toArray()).filter((x) => x.date && (x.date === todayISO() || (x.date < todayISO() && !x.isCompleted)));
+    const done = t.filter((x) => x.isCompleted).length;
+    const left = t.length - done;
+    if (now.getHours() >= 19) return riepilogoSera(done, left);
+    if (!t.length) return `${voce.nienteAttivitaOggi()} ${voce.incoraggiamento()}`;
+    return left === 0 ? voce.tutteFatte() : voce.rimaste(left);
+  }, [now.getHours(), todayISO()]);
 
-  const widgets = s.dashboardWidgets.filter((w) => WIDGETS[w]);
+  const widgets = s.dashboardWidgets.includes('pensiero') || s.dashboardWidgets.includes('-pensiero') ? s.dashboardWidgets.filter((w) => WIDGETS[w]) : ['pensiero', ...s.dashboardWidgets.filter((w) => WIDGETS[w])];
   const hidden = Object.keys(WIDGETS).filter((w) => !widgets.includes(w));
   const move = (i: number, d: number) => {
     const arr = [...widgets];
@@ -82,8 +87,8 @@ export default function Home() {
         <div>
           <h1>{greeting} <TinyHeart size={22} /></h1>
           <div className="date">{fmtLong(now)}</div>
-          <div className="quote">“{quote.text}”{quote.author ? <span className="small"> — {quote.author}</span> : null}</div>
-          {evening && <div className="small" style={{ marginTop: 10, color: 'var(--primary-strong)', fontWeight: 600 }}>{evening}</div>}
+          {ninaLine && <div className="quote" style={{ fontStyle: 'normal', fontFamily: 'var(--font-ui)', fontWeight: 600, color: 'var(--primary-strong)' }}>{ninaLine}</div>}
+          {!s.rotateQuotes && <div className="quote">“{quote.text}”{quote.author ? <span className="small"> — {quote.author}</span> : null}</div>}
         </div>
         <div className="clock">
           {now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}
@@ -109,7 +114,7 @@ export default function Home() {
               <div className="row" style={{ position: 'absolute', top: -10, right: 10, zIndex: 2, background: 'var(--surface)', borderRadius: 12, boxShadow: 'var(--shadow)', padding: 2, gap: 0 }}>
                 <button className="icon-btn sm" onClick={() => move(i, -1)} aria-label="Sposta prima"><ArrowUp size={16} /></button>
                 <button className="icon-btn sm" onClick={() => move(i, 1)} aria-label="Sposta dopo"><ArrowDown size={16} /></button>
-                <button className="icon-btn sm danger" onClick={() => setSettings({ dashboardWidgets: widgets.filter((x) => x !== w) })} aria-label="Nascondi"><EyeOff size={16} /></button>
+                <button className="icon-btn sm danger" onClick={() => setSettings({ dashboardWidgets: [...widgets.filter((x) => x !== w), ...(w === 'pensiero' ? ['-pensiero'] : [])] })} aria-label="Nascondi"><EyeOff size={16} /></button>
               </div>
             )}
             <Widget id={w} settings={s} />
@@ -123,6 +128,7 @@ export default function Home() {
 
 function Widget({ id, settings }: { id: string; settings: Settings }) {
   switch (id) {
+    case 'pensiero': return <PensieroCard />;
     case 'today': return <QuickAccess />;
     case 'tasks': return <TodayTasks />;
     case 'mood': return <MoodWidget goal={settings.waterGoal} />;
@@ -343,9 +349,11 @@ function NotesWidget() {
 
 function SelfCareWidget() {
   const [idea, setIdea] = useState(() => randomIdea());
+  const [invite] = useState(() => voce.inviteSelfCare());
   return (
     <div className="card" style={{ height: '100%', background: 'linear-gradient(135deg, var(--blue-soft), var(--surface) 70%)' }}>
       <div className="card-head"><h3><Sparkles size={18} />Un momento per te</h3><Link to="/selfcare" className="btn btn-sm btn-ghost"><Wind size={14} />Respira</Link></div>
+      <p className="small" style={{ margin: '-6px 0 10px', color: 'var(--primary-strong)', fontWeight: 600 }}>{invite}</p>
       <b style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem' }}>{idea.title}</b>
       <p className="small muted" style={{ margin: '6px 0 12px' }}>{idea.description} · {idea.minutes} min</p>
       <button className="btn btn-sm btn-soft" onClick={() => setIdea(randomIdea(idea))}><Shuffle size={14} />Un’altra</button>

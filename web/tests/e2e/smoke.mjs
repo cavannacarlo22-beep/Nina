@@ -26,6 +26,7 @@ page.on('console', (m) => { if (m.type() === 'error' && !/fonts\.g|Failed to loa
 const shot = (n) => page.screenshot({ path: `${OUT}/${n}.png` });
 
 await page.goto(BASE);
+await page.click('button:has-text("Continua senza account")');
 await page.waitForSelector('.hero');
 
 await step('Home: personalizza nome', async () => {

@@ -5,6 +5,7 @@ import { syncNow, wipeLocalData } from '../sync/engine';
 import { useSession, useSyncState } from '../sync/useSync';
 import { fmtRelative } from '../lib/dates';
 import { createBackup } from '../lib/backup';
+import { setLocal } from '../db/settings';
 import { download } from '../lib/files';
 import { Modal, useUI } from './ui';
 
@@ -74,7 +75,7 @@ export function AccountPanel() {
   );
 }
 
-function AuthDialog({ mode, setMode, onClose }: { mode: 'login' | 'register'; setMode: (m: 'login' | 'register') => void; onClose: () => void }) {
+export function AuthDialog({ mode, setMode, onClose }: { mode: 'login' | 'register'; setMode: (m: 'login' | 'register') => void; onClose: () => void }) {
   const ui = useUI();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -96,6 +97,7 @@ function AuthDialog({ mode, setMode, onClose }: { mode: 'login' | 'register'; se
         await register({ email, password, firstName: first.trim() || 'Io', lastName: last.trim() || '-', displayName: first.trim() || undefined });
       }
       ui.toast(mode === 'login' ? 'Bentornata 💗 Sincronizzo i tuoi dati…' : 'Account creato 🎉 Carico i tuoi dati…');
+      await setLocal('welcomeDone', true);
       void syncNow();
       onClose();
     } catch (e) {
