@@ -158,6 +158,16 @@ enum Traduttore {
         switch entita {
 
         case entitaAttivita:
+            // Le voci di una lista senza giorno (la spesa, la valigia…) nascono
+            // nell'app web e qui non hanno una schermata: l'iPhone le lascia al
+            // web invece di mostrarle come attività di oggi. Se una voce che era
+            // qui perde il giorno, sparisce anche da qui (solo localmente).
+            if dati["date"]?.testo == nil && cancellatoIl == nil {
+                if let vecchia = esistente(Attivita.self, id: id, contesto: contesto) {
+                    contesto.delete(vecchia)
+                }
+                return
+            }
             let attivita = esistente(Attivita.self, id: id, contesto: contesto) ?? {
                 let nuova = Attivita(titolo: "", giorno: CalendarioNina.oggi)
                 nuova.id = id
