@@ -83,6 +83,8 @@ export const syncRoutes: FastifyPluginAsyncTypebox = async (app) => {
   app.post(
     '/push',
     {
+      // Un lotto può contenere capitoli dei quaderni con delle immagini.
+      bodyLimit: 32 * 1024 * 1024,
       schema: {
         tags: ['sync'],
         summary: 'Invia le modifiche fatte offline',

@@ -68,6 +68,7 @@ export const SYNC_ENTITIES = [
   'quickNotes',
   'friendMessages',
   'userSettings',
+  'documents',
 ] as const;
 export type SyncEntity = (typeof SYNC_ENTITIES)[number];
 

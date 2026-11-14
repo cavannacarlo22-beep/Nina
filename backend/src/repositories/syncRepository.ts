@@ -26,6 +26,9 @@ import {
 
 type Row = Record<string, unknown>;
 
+/** Quanti documenti al massimo in una pagina di pull. */
+const DOCUMENTS_PER_PAGE = 40;
+
 export interface ChangeRecord {
   entity: SyncEntity;
   data: Record<string, unknown>;
@@ -59,30 +62,46 @@ export async function pullChanges(
 
   const perEntity = await Promise.all(
     SYNC_ENTITY_NAMES.map(async (entity) => {
+      // I documenti possono pesare (un capitolo con delle foto): se ne
+      // consegnano meno per pagina, così una risposta non diventa enorme.
+      const entityLimit = Math.min(pageSize, entity === 'documents' ? DOCUMENTS_PER_PAGE : pageSize);
       // Si chiede una riga in più del necessario per sapere se ce ne sono altre.
       const rows = await queryRows<Row>(
         sql`SELECT ${selectList(entity)}
               FROM ${tableName(entity)}
              WHERE user_id = ${userId} AND sync_seq > ${since}
              ORDER BY sync_seq ASC
-             LIMIT ${pageSize + 1}`,
+             LIMIT ${entityLimit + 1}`,
         client,
       );
-      return { entity, rows };
+      return { entity, rows, entityLimit };
     }),
   );
 
+  // Se un'entità ha più righe di quante ne abbiamo lette, tutto ciò che viene
+  // dopo la sua ultima riga letta non si può ancora consegnare: in mezzo
+  // potrebbero esserci sue righe non lette, e il cursore le salterebbe.
+  let cutoff = Number.POSITIVE_INFINITY;
+  let truncated = false;
+  for (const { rows, entityLimit } of perEntity) {
+    if (rows.length > entityLimit) {
+      truncated = true;
+      cutoff = Math.min(cutoff, Number((rows[entityLimit - 1] as Row)['sync_seq']));
+    }
+  }
+
   const merged: Array<{ entity: SyncEntity; row: Row; seq: number }> = [];
-  for (const { entity, rows } of perEntity) {
-    for (const row of rows) {
-      merged.push({ entity, row, seq: Number(row['sync_seq']) });
+  for (const { entity, rows, entityLimit } of perEntity) {
+    for (const row of rows.slice(0, entityLimit)) {
+      const seq = Number(row['sync_seq']);
+      if (seq <= cutoff) merged.push({ entity, row, seq });
     }
   }
 
   merged.sort((a, b) => a.seq - b.seq);
 
   const page = merged.slice(0, pageSize);
-  const hasMore = merged.length > pageSize;
+  const hasMore = truncated || merged.length > pageSize;
 
   // Il nuovo cursore è l'ultimo sync_seq effettivamente consegnato. Se non c'è
   // niente di nuovo resta quello di prima: il client non "salta" mai avanti.
@@ -179,7 +198,9 @@ async function applyOne(
     const field = fieldByApiName(item.entity, key);
     if (!field || value === undefined) continue;
     columns.push(field.db);
-    values.push(sql`${value}`);
+    // Un oggetto passato così com'è a pg diventerebbe testo: per JSONB serve
+    // serializzarlo e dichiararne il tipo.
+    values.push(field.type === 'json' ? sql`${JSON.stringify(value)}::jsonb` : sql`${value}`);
   }
 
   if (columns.length === 0) {

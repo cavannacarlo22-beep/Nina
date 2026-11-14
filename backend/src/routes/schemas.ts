@@ -76,7 +76,7 @@ export const TaskSchema = withMeta(
   Type.Object({
     title: Type.String(),
     description: Nullable(Type.String()),
-    date: CalendarDate,
+    date: Nullable(CalendarDate),
     time: Nullable(ClockTime),
     isCompleted: Type.Boolean(),
     priority: PriorityEnum,
@@ -89,6 +89,8 @@ export const TaskSchema = withMeta(
     notificationEnabled: Type.Boolean(),
     notificationMinutesBefore: Type.Integer(),
     completedAt: Nullable(IsoDateTime),
+    listId: Nullable(Uuid),
+    sortOrder: Type.Integer(),
   }),
 );
 

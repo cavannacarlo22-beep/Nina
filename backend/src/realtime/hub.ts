@@ -68,7 +68,11 @@ export function addSubscriber(userId: string, reply: FastifyReply, currentCursor
   set.add(subscriber);
   ensureHeartbeat();
 
+  // Le intestazioni già preparate da Fastify (CORS in testa) vanno portate con
+  // sé: scrivendo direttamente sulla risposta grezza andrebbero perse, e un
+  // browser rifiuterebbe lo stream di un'altra origine.
   reply.raw.writeHead(200, {
+    ...(reply.getHeaders() as Record<string, string>),
     'Content-Type': 'text/event-stream; charset=utf-8',
     'Cache-Control': 'no-cache, no-transform',
     Connection: 'keep-alive',

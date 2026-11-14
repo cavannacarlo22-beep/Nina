@@ -27,6 +27,7 @@ import { quickNoteRoutes } from './routes/quickNotes.js';
 import { contentRoutes } from './routes/content.js';
 import { statsRoutes } from './routes/stats.js';
 import { syncRoutes } from './routes/sync.js';
+import { fileRoutes } from './routes/files.js';
 import { friendRoutes } from './routes/friend.js';
 import { adminRoutes } from './routes/admin.js';
 
@@ -71,6 +72,7 @@ export async function buildApp(): Promise<FastifyInstance> {
       'Content-Type',
       'Authorization',
       'X-Nina-Device-Id',
+      'X-Nina-File-Mime',
       'X-Nina-Device-Name',
       'X-Nina-Platform',
       'X-Nina-App-Version',
@@ -117,6 +119,7 @@ export async function buildApp(): Promise<FastifyInstance> {
         { name: 'friend', description: 'La mia amica' },
         { name: 'stats', description: 'Statistiche personali' },
         { name: 'sync', description: 'Sincronizzazione fra dispositivi' },
+        { name: 'files', description: 'Contenuto dei file dell\'archivio' },
         { name: 'admin', description: 'Solo per amministratori' },
       ],
     },
@@ -155,6 +158,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(friendRoutes, { prefix: '/friend' });
   await app.register(statsRoutes, { prefix: '/stats' });
   await app.register(syncRoutes, { prefix: '/sync' });
+  await app.register(fileRoutes, { prefix: '/files' });
   await app.register(adminRoutes, { prefix: '/admin' });
 
   return app;

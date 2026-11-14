@@ -99,7 +99,7 @@ qualcosa**, e infatti:
 |---|---|
 | **Registrazioni** | chiuse. Chi trova l'indirizzo non può crearsi un account. |
 | **Documentazione dell'API** | spenta in produzione. Chi arriva non trova l'elenco di cosa esiste. |
-| **Origini browser** | nessuna autorizzata. Nessuna pagina web può parlare col server. |
+| **Origini browser** | solo l'app web di Nina (`CORS_ORIGINS`). Nessun altro sito può parlare col server. |
 | **Password** | mai salvate. Solo un'impronta Argon2id, da cui non si torna indietro. |
 | **Tentativi di accesso** | limitati. Provare password a raffica non porta da nessuna parte. |
 | **Diari e umori** | leggibili solo dal tuo account. Nemmeno l'ADMIN li vede. |

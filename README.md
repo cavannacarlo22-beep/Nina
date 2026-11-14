@@ -17,6 +17,7 @@ E ogni tanto ti ricorda anche di respirare 😂
 ```
 nina/
 ├── backend/        Node.js + TypeScript + Fastify, su Neon PostgreSQL
+├── web/            App web per iPad, iPhone e computer (si installa da Safari)
 ├── ios/            App nativa SwiftUI (iOS/iPadOS 17+), widget, App Intents
 └── docs/           Come si installa, come funziona, come si pubblica
 ```
@@ -30,6 +31,13 @@ italiano che risponde senza costare niente.
 SwiftData per la copia locale, layout separato per iPad (`NavigationSplitView`,
 non un iPhone ingrandito), Dark Mode, widget WidgetKit, scorciatoie Siri,
 notifiche locali.
+
+> **Novità — l'app web.** In `web/` c'è Nina per il browser, unita con Petalo:
+> oltre a tutto quello che c'è qui sotto ha quaderni con 302 font e Apple
+> Pencil, agenda, liste, archivio documenti, tabelle, beauty, self care con
+> esercizio di respirazione. Si installa sull'iPad da Safari senza App Store e
+> si sincronizza con lo stesso backend. Vedi [web/README.md](web/README.md) e
+> [docs/APP_WEB.md](docs/APP_WEB.md).
 
 ## Le funzioni
 

@@ -1703,7 +1703,9 @@
                               "seriesId",
                               "notificationEnabled",
                               "notificationMinutesBefore",
-                              "completedAt"
+                              "completedAt",
+                              "listId",
+                              "sortOrder"
                             ],
                             "properties": {
                               "title": {
@@ -1720,8 +1722,15 @@
                                 ]
                               },
                               "date": {
-                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                                "type": "string"
+                                "anyOf": [
+                                  {
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
                               },
                               "time": {
                                 "anyOf": [
@@ -1904,6 +1913,20 @@
                                     "type": "null"
                                   }
                                 ]
+                              },
+                              "listId": {
+                                "anyOf": [
+                                  {
+                                    "format": "uuid",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "sortOrder": {
+                                "type": "integer"
                               }
                             }
                           }
@@ -2211,7 +2234,9 @@
                         "seriesId",
                         "notificationEnabled",
                         "notificationMinutesBefore",
-                        "completedAt"
+                        "completedAt",
+                        "listId",
+                        "sortOrder"
                       ],
                       "properties": {
                         "title": {
@@ -2228,8 +2253,15 @@
                           ]
                         },
                         "date": {
-                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "time": {
                           "anyOf": [
@@ -2412,6 +2444,20 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "listId": {
+                          "anyOf": [
+                            {
+                              "format": "uuid",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sortOrder": {
+                          "type": "integer"
                         }
                       }
                     }
@@ -2521,7 +2567,9 @@
                         "seriesId",
                         "notificationEnabled",
                         "notificationMinutesBefore",
-                        "completedAt"
+                        "completedAt",
+                        "listId",
+                        "sortOrder"
                       ],
                       "properties": {
                         "title": {
@@ -2538,8 +2586,15 @@
                           ]
                         },
                         "date": {
-                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "time": {
                           "anyOf": [
@@ -2722,6 +2777,20 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "listId": {
+                          "anyOf": [
+                            {
+                              "format": "uuid",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sortOrder": {
+                          "type": "integer"
                         }
                       }
                     }
@@ -3051,7 +3120,9 @@
                         "seriesId",
                         "notificationEnabled",
                         "notificationMinutesBefore",
-                        "completedAt"
+                        "completedAt",
+                        "listId",
+                        "sortOrder"
                       ],
                       "properties": {
                         "title": {
@@ -3068,8 +3139,15 @@
                           ]
                         },
                         "date": {
-                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "time": {
                           "anyOf": [
@@ -3252,6 +3330,20 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "listId": {
+                          "anyOf": [
+                            {
+                              "format": "uuid",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sortOrder": {
+                          "type": "integer"
                         }
                       }
                     }
@@ -3449,7 +3541,9 @@
                         "seriesId",
                         "notificationEnabled",
                         "notificationMinutesBefore",
-                        "completedAt"
+                        "completedAt",
+                        "listId",
+                        "sortOrder"
                       ],
                       "properties": {
                         "title": {
@@ -3466,8 +3560,15 @@
                           ]
                         },
                         "date": {
-                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "time": {
                           "anyOf": [
@@ -3650,6 +3751,20 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "listId": {
+                          "anyOf": [
+                            {
+                              "format": "uuid",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sortOrder": {
+                          "type": "integer"
                         }
                       }
                     }
@@ -3781,7 +3896,9 @@
                         "seriesId",
                         "notificationEnabled",
                         "notificationMinutesBefore",
-                        "completedAt"
+                        "completedAt",
+                        "listId",
+                        "sortOrder"
                       ],
                       "properties": {
                         "title": {
@@ -3798,8 +3915,15 @@
                           ]
                         },
                         "date": {
-                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "time": {
                           "anyOf": [
@@ -3982,6 +4106,20 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "listId": {
+                          "anyOf": [
+                            {
+                              "format": "uuid",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sortOrder": {
+                          "type": "integer"
                         }
                       }
                     }
@@ -4107,7 +4245,9 @@
                         "seriesId",
                         "notificationEnabled",
                         "notificationMinutesBefore",
-                        "completedAt"
+                        "completedAt",
+                        "listId",
+                        "sortOrder"
                       ],
                       "properties": {
                         "title": {
@@ -4124,8 +4264,15 @@
                           ]
                         },
                         "date": {
-                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "time": {
                           "anyOf": [
@@ -4308,6 +4455,20 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "listId": {
+                          "anyOf": [
+                            {
+                              "format": "uuid",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sortOrder": {
+                          "type": "integer"
                         }
                       }
                     }
@@ -4442,7 +4603,9 @@
                               "seriesId",
                               "notificationEnabled",
                               "notificationMinutesBefore",
-                              "completedAt"
+                              "completedAt",
+                              "listId",
+                              "sortOrder"
                             ],
                             "properties": {
                               "title": {
@@ -4459,8 +4622,15 @@
                                 ]
                               },
                               "date": {
-                                "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                                "type": "string"
+                                "anyOf": [
+                                  {
+                                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
                               },
                               "time": {
                                 "anyOf": [
@@ -4643,6 +4813,20 @@
                                     "type": "null"
                                   }
                                 ]
+                              },
+                              "listId": {
+                                "anyOf": [
+                                  {
+                                    "format": "uuid",
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "sortOrder": {
+                                "type": "integer"
                               }
                             }
                           }
@@ -9302,7 +9486,9 @@
                         "seriesId",
                         "notificationEnabled",
                         "notificationMinutesBefore",
-                        "completedAt"
+                        "completedAt",
+                        "listId",
+                        "sortOrder"
                       ],
                       "properties": {
                         "title": {
@@ -9319,8 +9505,15 @@
                           ]
                         },
                         "date": {
-                          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "time": {
                           "anyOf": [
@@ -9503,6 +9696,20 @@
                               "type": "null"
                             }
                           ]
+                        },
+                        "listId": {
+                          "anyOf": [
+                            {
+                              "format": "uuid",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sortOrder": {
+                          "type": "integer"
                         }
                       }
                     }
@@ -11288,6 +11495,12 @@
                               {
                                 "type": "string",
                                 "enum": [
+                                  "documents"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
                                   "userSettings"
                                 ]
                               }
@@ -11392,6 +11605,12 @@
                               "type": "string",
                               "enum": [
                                 "friendMessages"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "documents"
                               ]
                             },
                             {
@@ -11509,6 +11728,12 @@
                               {
                                 "type": "string",
                                 "enum": [
+                                  "documents"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
                                   "userSettings"
                                 ]
                               }
@@ -11588,6 +11813,125 @@
               "text/event-stream": {
                 "schema": {
                   "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/files/{id}": {
+      "put": {
+        "summary": "Carica il contenuto di un file dell'archivio",
+        "tags": [
+          "files"
+        ],
+        "description": "Il tipo del file va nell'header `X-Nina-File-Mime`. Massimo 25 MB.",
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "size"
+                  ],
+                  "properties": {
+                    "id": {
+                      "format": "uuid",
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Scarica il contenuto di un file dell'archivio",
+        "tags": [
+          "files"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Elimina il contenuto di un file dell'archivio",
+        "tags": [
+          "files"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "ok"
+                  ],
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    }
+                  }
                 }
               }
             }
@@ -13201,6 +13545,10 @@
     {
       "name": "sync",
       "description": "Sincronizzazione fra dispositivi"
+    },
+    {
+      "name": "files",
+      "description": "Contenuto dei file dell'archivio"
     },
     {
       "name": "admin",

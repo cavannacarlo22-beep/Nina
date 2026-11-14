@@ -29,7 +29,8 @@ export type FieldType =
   | 'time' // "18:30"
   | 'timestamp' // istante, esce in ISO 8601 UTC
   | 'intArray'
-  | 'uuid';
+  | 'uuid'
+  | 'json'; // oggetto JSON (JSONB)
 
 export interface FieldSpec {
   /** Nome nel JSON delle API. */
@@ -98,6 +99,8 @@ export const ENTITIES: Record<SyncEntity, EntitySpec> = {
         writable: true,
       },
       { api: 'completedAt', db: 'completed_at', type: 'timestamp', writable: true },
+      { api: 'listId', db: 'list_id', type: 'uuid', writable: true },
+      { api: 'sortOrder', db: 'sort_order', type: 'int', writable: true },
     ],
   },
 
@@ -206,6 +209,19 @@ export const ENTITIES: Record<SyncEntity, EntitySpec> = {
       ...META_FIELDS,
       { api: 'author', db: 'author', type: 'text', writable: true },
       { api: 'content', db: 'content', type: 'text', writable: true },
+    ],
+  },
+
+  documents: {
+    entity: 'documents',
+    table: 'documents',
+    label: 'documenti',
+    defaultOrder: 'created_at ASC',
+    softDeletable: true,
+    fields: [
+      ...META_FIELDS,
+      { api: 'collection', db: 'collection', type: 'text', writable: true },
+      { api: 'data', db: 'data', type: 'json', writable: true },
     ],
   },
 

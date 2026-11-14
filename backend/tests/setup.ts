@@ -10,6 +10,8 @@ process.env['JWT_REFRESH_SECRET'] ??= 'segreto-di-test-non-usato-in-produzione-2
 process.env['DATABASE_URL'] ??= 'postgresql://nina:ninadev@127.0.0.1:5432/nina_test';
 process.env['AI_PROVIDER'] = 'none';
 process.env['SMTP_HOST'] = '';
+// L'app web di Nina chiama le API da un'altra origine.
+process.env['CORS_ORIGINS'] ??= 'https://app.nina.test';
 
 // I limiti restano attivi ma alzati: con il valore di produzione (10 al minuto)
 // ogni file di test si bloccherebbe da solo dopo dieci registrazioni. Che il

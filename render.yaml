@@ -80,9 +80,10 @@ services:
       - key: REGISTRAZIONI_APERTE
         value: "no"
 
-      # Nessuna origine browser autorizzata: Nina è un'app, non un sito.
+      # Le pagine web autorizzate a parlare col server: solo l'app web di Nina.
+      # Si imposta su Render con l'indirizzo di Vercel (docs/APP_WEB.md).
       - key: CORS_ORIGINS
-        value: ""
+        sync: false
 
       - key: AI_PROVIDER
         value: none
