@@ -186,3 +186,38 @@ describe('benessere, abitudini, beauty', () => {
     expect(expiryState(soon).state).toBe('presto');
   });
 });
+
+describe('dati portati da Petalo', () => {
+  it('un backup di Petalo si importa convertito, senza perdere niente', async () => {
+    const zip = new JSZip();
+    zip.file('manifest.json', JSON.stringify({ app: 'petalo', version: 1, createdAt: Date.now(), counts: {} }));
+    zip.file('data.json', JSON.stringify({
+      lists: [{ id: 'L', title: 'Spesa', kind: 'spesa', color: '#fff', emoji: '🛒', order: 0, pinned: false, createdAt: 1, updatedAt: 1 }],
+      items: [{ id: 'I', listId: 'L', text: 'Pane', note: '', done: true, order: 0, dueDate: '', priority: 3, createdAt: 1, completedAt: 2 }],
+      memos: [{ id: 'M', text: 'Chiamare la nonna', color: '', dueAt: '', done: false, createdAt: 1 }],
+      habits: [{ id: 'H', name: 'Leggere', emoji: '📖', color: '#7fbfe8', order: 0, archived: false, createdAt: 1 }],
+      habitLogs: [{ id: 'H|2026-11-01', habitId: 'H', date: '2026-11-01' }],
+      dayLogs: [{ date: '2026-11-01', mood: 5, water: 6, sleep: 7, period: false, journal: 'Bella giornata', gratitude: 'Il sole' }],
+      calcHistory: [{ id: 7, expression: '2+2', result: '4', source: 'calcolatrice', createdAt: 1 }],
+      exams: [{ id: 'E', name: 'Analisi', cfu: 9, grade: 30 }],
+      files: [{ id: 'F', name: 'a.txt', folderId: null, mime: 'text/plain', size: 3, category: 'testo', favorite: false, tags: [], createdAt: 1, updatedAt: 1 }],
+      settings: [{ key: 'name', value: 'Giulia' }, { key: 'graduationScale', value: 110 }],
+    }));
+    zip.file('files/F', 'ciao');
+    await restoreBackup(await zip.generateAsync({ type: 'blob' }));
+
+    const task = await db.tasks.get('I');
+    expect(task).toMatchObject({ title: 'Pane', listId: 'L', isCompleted: true, priority: 'HIGH', category: 'SHOPPING', date: null });
+    expect((await db.quickNotes.get('M'))?.content).toBe('Chiamare la nonna');
+    expect((await db.habits.get('H'))?.icon).toBe('📖');
+    expect(await db.habitCompletions.count()).toBe(1);
+    expect((await db.moods.toArray())[0]).toMatchObject({ mood: 'FANTASTICA', date: '2026-11-01' });
+    expect((await db.diaryEntries.toArray())[0].content).toBe('Bella giornata');
+    expect((await db.dayLogs.toArray())[0]).toMatchObject({ water: 6, sleep: 7, gratitude: 'Il sole' });
+    expect(typeof (await db.calcHistory.toArray())[0].id).toBe('string');
+    expect(await (await db.fileBlobs.get('F'))!.blob.text()).toBe('ciao');
+    expect((await getSettings()).name).toBe('Giulia');
+    // tutto pronto per salire sul server
+    expect(task?._dirty).toBe(1);
+  });
+});

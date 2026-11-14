@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import { db, DATA_TABLES, markRemote, SYNCED_TABLES, type DataTable } from '../db/db';
 import type { FileBlob } from '../db/types';
 import { decryptBytes, encryptBytes, isEncrypted } from './crypto';
+import { convertPetaloData } from './petaloImport';
 
 export const BACKUP_VERSION = 2;
 
@@ -77,7 +78,9 @@ export async function restoreBackup(file: Blob, password?: string): Promise<Mani
   if (!manifestFile || !dataFile) throw new Error('Il file non è un backup valido di Nina');
   const manifest = JSON.parse(await manifestFile.async('string')) as Manifest;
   if (manifest.app !== 'nina' && manifest.app !== ('petalo' as string)) throw new Error('Il file non è un backup valido di Nina');
-  const data = JSON.parse(await dataFile.async('string')) as Record<string, unknown[]>;
+  let data = JSON.parse(await dataFile.async('string')) as Record<string, unknown[]>;
+  // un backup di Petalo: si converte nel formato di Nina
+  if ((manifest.app as string) === 'petalo') data = convertPetaloData(data);
 
   const blobRows: FileBlob[] = [];
   for (const meta of (data.fileBlobs ?? []) as Omit<FileBlob, 'blob'>[]) {
