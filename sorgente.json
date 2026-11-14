@@ -17,6 +17,16 @@
       "versions": [
         {
           "version": "1.0.0",
+          "buildVersion": "3",
+          "date": "2026-11-14T14:19:51Z",
+          "downloadURL": "https://github.com/cavannacarlo22-beep/Nina/releases/download/v1.0.0-3/Nina.ipa",
+          "size": 1983039,
+          "sha256": "9c45a3f701892e9b4781cf080de02269dd7f75bf97d7f0ce8ed1dbe5e452f581",
+          "localizedDescription": "Ultima versione.",
+          "minOSVersion": "17.0"
+        },
+        {
+          "version": "1.0.0",
           "buildVersion": "2",
           "date": "2026-09-10T13:08:44Z",
           "downloadURL": "https://github.com/cavannacarlo22-beep/Nina/releases/download/v1.0.0-2/Nina.ipa",
